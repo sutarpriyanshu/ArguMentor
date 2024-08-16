@@ -114,7 +114,7 @@ function App() {
   const getAIResponse = async (userArgument) => {
     setLoading(true);
     try {
-      const response = await axios.post('http://localhost:5000/api/debate', {
+      const response = await axios.post('https://vercel.com/priyanshu-sutars-projects/argumentor/Aiiwtritf2axc2z5gcJCtQZSin8A', {
         topic,
         userStance,
         userArgument,
