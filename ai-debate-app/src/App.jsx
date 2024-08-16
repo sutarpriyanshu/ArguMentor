@@ -114,7 +114,7 @@ function App() {
   const getAIResponse = async (userArgument) => {
     setLoading(true);
     try {
-      const response = await axios.post('https://argumentor-ten.vercel.app/api/debate', {
+      const response = await axios.post('http://localhost:5000/api/debate', {
         topic,
         userStance,
         userArgument,
@@ -225,7 +225,7 @@ function App() {
         </Header>
         <main>
           {!debateStarted ? (
-            <div className="debate-setup">
+            <div className="debate-setup" style={{ backgroundColor: '#D5ED9F'}}>
               <h2>{language === 'en' ? 'Set Up Your Debate' : 'अपनी बहस तैयार करें'}</h2>
               <form onSubmit={handleStartDebate}>
                 <div className="form-group">
@@ -258,8 +258,8 @@ function App() {
               </form>
             </div>
           ) : (
-            <div className="debate-area">
-              <h2>{language === 'en' ? `Debate: ${topic}` : `बहस: ${topic}`}</h2>
+            <div className="debate-area" style={{ backgroundColor: '#D5ED9F'}}>
+              <h2 className='debate-topic'>{language === 'en' ? `Debate: ${topic}` : `बहस: ${topic}`}</h2>
               <DebateHistory>
                 {debateHistory.map((entry, index) => (
                   <DebateEntry key={index} isUser={entry.type === 'user'}>

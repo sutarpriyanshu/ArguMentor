@@ -38,6 +38,7 @@ export const darkTheme = {
   inputBorder: '#3A3A3C',
   buttonBg: '#0A84FF',
   buttonText: '#FFFFFF',
+  
 };
 
 export const GlobalStyles = createGlobalStyle`

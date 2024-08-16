@@ -23,7 +23,15 @@ body {
 .form-group {
   margin-bottom: 1.5rem;
 }
+.debate-area {
 
+  background-color: #D5ED9F; /* White text */
+}
+
+.light-theme .debate-area {
+  background-color: #FFFFFF; /* White background */
+  color: #000000; /* Black text */
+}
 label {
   display: block;
   margin-bottom: 0.5rem;
