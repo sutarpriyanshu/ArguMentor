@@ -12,7 +12,7 @@ app.use(express.json());
 
 const genAI = new GoogleGenerativeAI(process.env.GOOGLE_API_KEY);
 
-app.post('/api/debate', async (req, res) => {
+app.post('https://argumentor-ten.vercel.app/api/debate', async (req, res) => {
   try {
     const { topic, userStance, userArgument, language } = req.body;
     
