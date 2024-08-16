@@ -21,6 +21,7 @@ const Header = styled.header`
   display: flex;
   justify-content: space-between;
   align-items: center;
+  position: relative;
 `;
 
 const ToggleButton = styled.button`
@@ -30,6 +31,26 @@ const ToggleButton = styled.button`
   padding: 0.5rem 1rem;
   border-radius: 5px;
   cursor: pointer;
+`;
+
+const HomeButton = styled.button`
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background-color: ${props => props.theme.buttonBg};
+  color: ${props => props.theme.buttonText};
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  font-weight: 600;
+  transition: all 0.3s ease;
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  }
 `;
 
 const DebateHistory = styled.div`
@@ -64,6 +85,8 @@ function App() {
   const [theme, setTheme] = useState('light');
   const [language, setLanguage] = useState('en');
   const [currentSentenceIndex, setCurrentSentenceIndex] = useState(0);
+  const [debateEnded, setDebateEnded] = useState(false);
+  const [debateScore, setDebateScore] = useState(null);
   const sentencesRef = useRef([]);
   const utteranceRef = useRef(null);
 
@@ -146,15 +169,12 @@ function App() {
   };
 
   const splitIntoSentences = (text) => {
-    // Split by । for Hindi and . for English
     return text.split(/[।.]/g).filter(sentence => sentence.trim() !== '');
   };
 
   const speakText = (text) => {
     if ('speechSynthesis' in window) {
-      // Cancel any ongoing speech
       window.speechSynthesis.cancel();
-
       const sentences = splitIntoSentences(text);
       sentencesRef.current = sentences;
       setCurrentSentenceIndex(0);
@@ -207,6 +227,32 @@ function App() {
     setLanguage(e.target.value);
   };
 
+  const endDebate = async () => {
+    setLoading(true);
+    try {
+      const response = await axios.post('http://localhost:5000/api/end-debate', {
+        topic,
+        userStance,
+        debateHistory,
+        language
+      });
+      setDebateEnded(true);
+      setDebateScore(response.data.score);
+    } catch (error) {
+      console.error('Error ending debate:', error);
+    }
+    setLoading(false);
+  };
+
+  const resetDebate = () => {
+    setTopic('');
+    setUserStance('');
+    setDebateStarted(false);
+    setDebateHistory([]);
+    setDebateEnded(false);
+    setDebateScore(null);
+  };
+
   return (
     <ThemeProvider theme={theme === 'light' ? lightTheme : darkTheme}>
       <GlobalStyles />
@@ -222,10 +268,15 @@ function App() {
               {theme === 'light' ? '🌙' : '☀️'}
             </ToggleButton>
           </div>
+          {debateEnded && (
+            <HomeButton onClick={resetDebate}>
+              {language === 'en' ? 'Home' : 'होम'}
+            </HomeButton>
+          )}
         </Header>
         <main>
           {!debateStarted ? (
-            <div className="debate-setup" style={{ backgroundColor: '#D5ED9F'}}>
+            <div className="debate-setup">
               <h2>{language === 'en' ? 'Set Up Your Debate' : 'अपनी बहस तैयार करें'}</h2>
               <form onSubmit={handleStartDebate}>
                 <div className="form-group">
@@ -258,8 +309,8 @@ function App() {
               </form>
             </div>
           ) : (
-            <div className="debate-area" style={{ backgroundColor: '#D5ED9F'}}>
-              <h2 className='debate-topic'>{language === 'en' ? `Debate: ${topic}` : `बहस: ${topic}`}</h2>
+            <div className="debate-area">
+              <h2>{language === 'en' ? `Debate: ${topic}` : `बहस: ${topic}`}</h2>
               <DebateHistory>
                 {debateHistory.map((entry, index) => (
                   <DebateEntry key={index} isUser={entry.type === 'user'}>
@@ -277,38 +328,51 @@ function App() {
                   </DebateEntry>
                 ))}
               </DebateHistory>
-              <form onSubmit={handleUserSubmit} className="argument-form">
-                <textarea
-                  value={userInput}
-                  onChange={(e) => setUserInput(e.target.value)}
-                  placeholder={language === 'en' ? 'Enter your argument...' : 'अपना तर्क दर्ज करें...'}
-                  rows="4"
-                  required
-                />
-                <div className="button-group">
-                  <button type="submit" className="btn-primary" disabled={loading}>
-                    {loading ? (language === 'en' ? 'AI is thinking...' : 'एआई सोच रहा है...') : (language === 'en' ? 'Submit Argument' : 'तर्क जमा करें')}
-                  </button>
-                  {recognition && (
-                    <button 
-                      type="button" 
-                      className={`btn-voice ${isListening ? 'listening' : ''}`} 
-                      onClick={toggleListening}
-                    >
-                      {isListening ? (language === 'en' ? 'Stop Voice Input' : 'आवाज इनपुट बंद करें') : (language === 'en' ? 'Start Voice Input' : 'आवाज इनपुट शुरू करें')}
+              {!debateEnded && (
+                <form onSubmit={handleUserSubmit} className="argument-form">
+                  <textarea
+                    value={userInput}
+                    onChange={(e) => setUserInput(e.target.value)}
+                    placeholder={language === 'en' ? 'Enter your argument...' : 'अपना तर्क दर्ज करें...'}
+                    rows="4"
+                    required
+                  />
+                  <div className="button-group">
+                    <button type="submit" className="btn-primary" disabled={loading}>
+                      {loading ? (language === 'en' ? 'AI is thinking...' : 'एआई सोच रहा है...') : (language === 'en' ? 'Submit Argument' : 'तर्क जमा करें')}
                     </button>
-                  )}
-                  {isSpeaking && (
-                    <button 
-                      type="button" 
-                      className="btn-stop-speak" 
-                      onClick={stopSpeaking}
-                    >
-                      {language === 'en' ? 'Stop Speaking' : 'बोलना बंद करें'}
-                    </button>
-                  )}
+                    {recognition && (
+                      <button 
+                        type="button" 
+                        className={`btn-voice ${isListening ? 'listening' : ''}`} 
+                        onClick={toggleListening}
+                      >
+                        {isListening ? (language === 'en' ? 'Stop Voice Input' : 'आवाज इनपुट बंद करें') : (language === 'en' ? 'Start Voice Input' : 'आवाज इनपुट शुरू करें')}
+                      </button>
+                    )}
+                    {isSpeaking && (
+                      <button 
+                        type="button" 
+                        className="btn-stop-speak" 
+                        onClick={stopSpeaking}
+                      >
+                        {language === 'en' ? 'Stop Speaking' : 'बोलना बंद करें'}
+                      </button>
+                    )}
+                  </div>
+                </form>
+              )}
+              {debateStarted && !debateEnded && (
+                <button onClick={endDebate} className="btn-end-debate">
+                  {language === 'en' ? 'End Debate' : 'बहस समाप्त करें'}
+                </button>
+              )}
+              {debateEnded && debateScore !== null && (
+                <div className="debate-score">
+                  <h3>{language === 'en' ? 'Debate Score' : 'बहस का स्कोर'}</h3>
+                  <p>{language === 'en' ? `Your score: ${debateScore}` : `आपका स्कोर: ${debateScore}`}</p>
                 </div>
-              </form>
+              )}
             </div>
           )}
         </main>

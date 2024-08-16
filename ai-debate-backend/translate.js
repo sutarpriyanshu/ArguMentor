@@ -1,3 +1,4 @@
+// translate.js
 const {Translate} = require('@google-cloud/translate').v2;
 
 // Your Google Cloud Project ID
