@@ -35,7 +35,7 @@ app.post('/api/debate', async (req, res) => {
       const result = await model.generateContent(prompt);
       const response = await result.response;
       let text = response.text();
-  
+      
       // Truncate the response to roughly 100 words
       const words = text.split(/\s+/);
       const truncatedResponse = words.slice(0, 100).join(' ') + (words.length > 100 ? '...' : '');

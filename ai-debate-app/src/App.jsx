@@ -144,7 +144,7 @@ function App() {
   const getAIResponse = async (userArgument) => {
     setLoading(true);
     try {
-      const response = await axios.post("http://localhost:5000/api/debate", {
+      const response = await axios.post("https://argumentor-plum.vercel.app/api/debate", {
         topic,
         userStance,
         userArgument,
@@ -242,7 +242,7 @@ function App() {
     setLoading(true);
     try {
       const response = await axios.post(
-        "http://localhost:5000/api/end-debate",
+        "https://argumentor-plum.vercel.app/api/end-debate",
         {
           topic,
           userStance,
